@@ -10,6 +10,7 @@
     <uses-feature android:name="android.hardware.camera" android:required="false" />
 
     <application
+        tools:replace="android:theme"
         android:name=".SentinelApp"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
