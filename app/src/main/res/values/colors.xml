@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <color name="sentinel_bg_deep">#090D1A</color>
+    <color name="sentinel_bg_card">#111827</color>
+    <color name="sentinel_bg_surface">#1A2236</color>
+
+    <color name="sentinel_accent_cyan">#00D4FF</color>
+    <color name="sentinel_accent_cyan_dim">#1A4A5A</color>
+    <color name="sentinel_accent_purple">#7C3AED</color>
+
+    <color name="sentinel_risk_clear">#00E676</color>
+    <color name="sentinel_risk_clear_bg">#0D2B1A</color>
+    <color name="sentinel_risk_suspicious">#FF9800</color>
+    <color name="sentinel_risk_suspicious_bg">#2B1A00</color>
+    <color name="sentinel_risk_forged">#FF3B3B</color>
+    <color name="sentinel_risk_forged_bg">#2B0D0D</color>
+
+    <color name="sentinel_text_primary">#F0F4FF</color>
+    <color name="sentinel_text_secondary">#8892A4</color>
+    <color name="sentinel_text_hint">#4A5568</color>
+
+    <color name="sentinel_divider">#1E2A3A</color>
+    <color name="sentinel_stroke">#243044</color>
+    <color name="sentinel_module_locked">#2A3040</color>
+    <color name="ic_launcher_background">#090D1A</color>
+</resources>
