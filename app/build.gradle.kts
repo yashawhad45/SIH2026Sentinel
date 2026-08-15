@@ -61,7 +61,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)
-    implementation(libs.mlkit.text.recognition)
+    implementation("io.github.hzkitty:rapidocr4j-android:1.0.0")
     implementation(libs.tensorflow.lite)
     implementation(libs.tensorflow.lite.support)
     implementation(libs.zxing.android.embedded)
