@@ -10,14 +10,14 @@
         "unusual_device_flag",
         "unusual_ip_flag"
     ],
-    "remaining_features_count": 654,
+    "remaining_features_count": 43,
     "models": {
         "Logistic Regression": {
             "model_name": "Logistic Regression",
-            "accuracy": 0.9996,
-            "precision": 0.9978,
+            "accuracy": 0.9991,
+            "precision": 0.9945,
             "recall": 1.0,
-            "f1_score": 0.9989,
+            "f1_score": 0.9973,
             "roc_auc": 1.0
         },
         "Random Forest": {

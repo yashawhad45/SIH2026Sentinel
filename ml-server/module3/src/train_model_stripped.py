@@ -93,6 +93,13 @@ def prepare_stripped_data(raw_path: str = RAW_DATA_PATH, test_size: float = 0.2,
     y = df_clean[TARGET_COLUMN]
     X = df_clean.drop(columns=[TARGET_COLUMN])
 
+    # Fix 'business_name_match' leakage
+    if "business_name_match" in X.columns:
+        X["has_business_name_match"] = ((X["business_name_match"] != "none") & 
+                                        X["business_name_match"].notna() & 
+                                        (X["business_name_match"] != "")).astype(int)
+        X = X.drop(columns=["business_name_match"])
+
     # One-hot encode remaining categorical columns
     X_encoded = pd.get_dummies(X, drop_first=True, dtype=int)
     X_encoded.columns = [sanitize_column_name(col) for col in X_encoded.columns]
