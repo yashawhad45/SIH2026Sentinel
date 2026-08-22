@@ -1,49 +1,43 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, UploadFile, File
 from model import ForgeryDetectionModel
+from srm_analyzer import SrmAnalyzer
+import os
 
-app = FastAPI(title="Sentinel Micro-Forgery CNN API")
+app = FastAPI(title="Sentinel ML Server", version="2.0")
 
-# Setup CORS to allow mobile clients or web dashboards
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# Initialize the model globally so it's loaded into memory once on startup.
-# We point to a placeholder model path. Users can drop casia_resnet50.pth here.
-cnn_model = ForgeryDetectionModel(model_path="casia_resnet50.pth")
-
-@app.get("/")
-def read_root():
-    return {"message": "Sentinel CNN API is running. POST to /detect-forgery."}
+# Initialize models
+model_path = os.path.join(os.path.dirname(__file__), "casia_resnet50.pth")
+detector = ForgeryDetectionModel(model_path if os.path.exists(model_path) else None)
+srm = SrmAnalyzer()
 
 @app.post("/detect-forgery")
 async def detect_forgery(file: UploadFile = File(...)):
-    """
-    Accepts an image file and returns a forgery probability score.
-    """
-    if not file.content_type.startswith("image/"):
-        raise HTTPException(status_code=400, detail="File must be an image.")
-        
-    try:
-        # Read file bytes
-        image_bytes = await file.read()
-        
-        # Run inference
-        result = cnn_model.predict(image_bytes)
-        
-        if not result["success"]:
-            raise HTTPException(status_code=500, detail=f"Model inference failed: {result['error']}")
-            
-        return {
-            "filename": file.filename,
-            "forgery_probability": result["forgery_probability"],
-            "is_forged": result["is_forged"]
-        }
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    contents = await file.read()
+    
+    # Run CNN detection
+    cnn_result = detector.predict(contents)
+    
+    # Run SRM noise analysis
+    srm_result = srm.analyze(contents)
+    
+    # Combine scores
+    cnn_prob = cnn_result.get("forgery_probability", 0.5)
+    srm_score = srm_result.get("noise_inconsistency", 0.0)
+    
+    # Weighted combination: CNN 40%, SRM 60% (SRM is more reliable for splicing)
+    combined_prob = (cnn_prob * 0.4) + (srm_score * 0.6)
+    
+    return {
+        "filename": file.filename,
+        "forgery_probability": round(combined_prob, 4),
+        "is_forged": combined_prob > 0.5,
+        "cnn_score": round(cnn_prob, 4),
+        "srm_score": round(srm_score, 4),
+        "srm_details": srm_result.get("details", ""),
+        "srm_outlier_blocks": srm_result.get("outlier_blocks", 0),
+        "srm_total_blocks": srm_result.get("total_blocks", 0)
+    }
+
+@app.get("/health")
+async def health():
+    return {"status": "ok", "version": "2.0", "layers": ["CNN-CASIA", "SRM-Noise"]}

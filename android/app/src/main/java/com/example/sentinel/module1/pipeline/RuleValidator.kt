@@ -31,7 +31,7 @@ class RuleValidator : ForensicModule {
     fun validateWithOcrResult(ocrResult: OcrResult): LayerResult {
         val rawId = ocrResult.idNumber.replace(" ", "").uppercase()
         return when {
-            rawId.length == 12 && rawId.all { it.isDigit() } -> validateAadhaar(rawId)
+            rawId.length == 12 && rawId.all { it.isDigit() } -> validateAadhaar(rawId, ocrResult)
             panRegex.matches(rawId) -> validatePan(rawId)
             else -> LayerResult(
                 layerName = moduleName,
@@ -47,18 +47,64 @@ class RuleValidator : ForensicModule {
         }
     }
 
-    private fun validateAadhaar(digits: String): LayerResult {
+    private fun validateAadhaar(digits: String, ocrResult: OcrResult): LayerResult {
         val checksumOk = verhoeffChecksum(digits)
-        val passed = checksumOk && digits.length == 12
+        val issues = mutableListOf<String>()
+
+        // 1. Verhoeff Checksum
+        if (!checksumOk) {
+            issues.add("Verhoeff checksum: FAILED - digit tampered")
+        }
+
+        // 2. DOB Validation
+        val dob = ocrResult.dateOfBirth
+        if (dob.isNotEmpty()) {
+            val parts = dob.split("/", "-")
+            if (parts.size == 3) {
+                val day = parts[0].toIntOrNull() ?: 0
+                val month = parts[1].toIntOrNull() ?: 0
+                val yearStr = parts[2]
+                val year = yearStr.toIntOrNull() ?: 0
+
+                if (yearStr.length != 4) {
+                    issues.add("DOB Year has ${yearStr.length} digits ('$yearStr') instead of 4 - Forgery!")
+                } else if (year < 1900 || year > 2025) {
+                    issues.add("DOB Year '$year' is out of valid range (1900-2025)")
+                }
+                if (month < 1 || month > 12) {
+                    issues.add("DOB Month '$month' is invalid (expected 1-12)")
+                }
+                if (day < 1 || day > 31) {
+                    issues.add("DOB Day '$day' is invalid (expected 1-31)")
+                }
+            }
+        }
+
+        // 3. Name sanity check
+        val name = ocrResult.name
+        if (name.isNotEmpty()) {
+            if (name.any { it.isDigit() }) {
+                issues.add("Name contains digits - likely OCR misread or tampering")
+            }
+            if (name.length < 2) {
+                issues.add("Name too short ('$name') - suspicious")
+            }
+        }
+
+        val passed = issues.isEmpty()
+
         return LayerResult(
             layerName = moduleName,
             passed = passed,
             riskLevel = if (passed) RiskLevel.CLEAR else RiskLevel.FORGED,
-            score = if (passed) 0f else 0.85f,
+            score = if (passed) 0f else 0.95f,
             details = buildList {
                 add("Document: Aadhaar Card")
                 add("Format (12 digits): Valid")
-                add("Verhoeff checksum: ${if (checksumOk) "Passed" else "FAILED — digit may be tampered"}")
+                add("Verhoeff checksum: ${if (checksumOk) "Passed" else "FAILED"}")
+                if (dob.isNotEmpty()) add("DOB extracted: $dob")
+                addAll(issues)
+                if (issues.isEmpty()) add("All validation rules passed")
             }
         )
     }

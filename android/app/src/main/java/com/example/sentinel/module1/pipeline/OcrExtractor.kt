@@ -18,8 +18,8 @@ class OcrExtractor {
 
     private val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
 
-    private val aadhaarPattern = Regex("""\b\d{4}\s\d{4}\s\d{4}\b""")
-    private val dobPattern = Regex("""\b(\d{2}[/-]\d{2}[/-]\d{4}|\d{4}[/-]\d{2}[/-]\d{2})\b""")
+    private val aadhaarPattern = Regex("""\b[2-9]\d{3}\s?\d{4}\s?\d{4}\b""")
+    private val dobPattern = Regex("""(\d{2}[/-]\d{2}[/-]\d{4,})""")
     private val nameLinePattern = Regex("""(?i)(name|नाम|nam)\s*[:\-]?\s*(.+)""")
 
     suspend fun extract(bitmap: Bitmap): OcrResult {
@@ -69,3 +69,6 @@ class OcrExtractor {
 
     fun release() = recognizer.close()
 }
+
+
+

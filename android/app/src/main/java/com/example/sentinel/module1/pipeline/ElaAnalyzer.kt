@@ -12,9 +12,9 @@ class ElaAnalyzer : ForensicModule {
     override val moduleName = "Error Level Analysis"
 
     private val recompressionQuality = 75
-    private val amplificationFactor = 10
-    private val suspiciousThreshold = 0.15f
-    private val forgedThreshold = 0.30f
+    private val amplificationFactor = 20
+    private val suspiciousThreshold = 0.08f
+    private val forgedThreshold = 0.18f
 
     override suspend fun analyze(input: com.example.sentinel.core.ModuleInput): LayerResult {
         if (input !is com.example.sentinel.core.ModuleInput.ImageInput) throw IllegalArgumentException("Expected ImageInput")
@@ -100,3 +100,4 @@ class ElaAnalyzer : ForensicModule {
 object ElaResultHolder {
     var lastHeatmap: Bitmap? = null
 }
+
