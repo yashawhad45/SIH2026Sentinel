@@ -14,7 +14,7 @@ import java.nio.channels.FileChannel
 
 class TfliteClassifier(private val context: Context) : ForensicModule {
 
-    override val moduleName = "CNN Classifier"
+    override val moduleName = "AI Forgery Classifier"
 
     private val modelFileName = "forgery_detector.tflite"
     private val inputSize = 224
@@ -71,9 +71,9 @@ class TfliteClassifier(private val context: Context) : ForensicModule {
                 add("Input resolution: ${inputSize}x${inputSize}")
                 add("Forgery probability: ${"%.1f".format(forgeryProbability * 100)}%")
                 when (riskLevel) {
-                    RiskLevel.CLEAR -> add("CNN finds no micro-visual forgery artifacts")
-                    RiskLevel.SUSPICIOUS -> add("CNN detects moderate forgery artifacts")
-                    RiskLevel.FORGED -> add("CNN detects strong forgery artifacts in micro-texture")
+                    RiskLevel.CLEAR -> add("AI finds no micro-visual forgery artifacts")
+                    RiskLevel.SUSPICIOUS -> add("AI detects moderate forgery artifacts")
+                    RiskLevel.FORGED -> add("AI detects strong forgery artifacts in micro-texture")
                 }
             }
         )

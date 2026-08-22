@@ -132,7 +132,7 @@ fun HomeScreen(onModule1Click: () -> Unit, onModule3Click: () -> Unit) {
             ModuleCard(
                 icon = Icons.Filled.Security,
                 title = "Document Forensics",
-                description = "Detect forged identity documents using multi-layer on-device AI analysis — OCR, ELA, CNN, QR cross-verification.",
+                description = "Detect forged identity documents using multi-layer on-device AI analysis — OCR, ELA, DocTamper, QR cross-verification.",
                 statusLabel = "ACTIVE",
                 statusColor = RiskClear,
                 statusBgColor = Color(0xFF0D2B1A),

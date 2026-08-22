@@ -71,21 +71,20 @@ class DocumentForensicPipeline(context: Context) {
         onLayerComplete(ruleResult)
 
 // === Layers 3-6: Run concurrently for speed ===
-        val elaDeferred = async(Dispatchers.Default) { elaAnalyzer.analyze(bitmap) }
+        val elaDeferred = async(Dispatchers.Default) { elaAnalyzer.analyze(com.example.sentinel.core.ModuleInput.ImageInput(bitmap)) }
         val cnnDeferred = async(Dispatchers.IO) { runCnnBackend(bitmap) }
         val typoDeferred = async(Dispatchers.IO) { typographyAnalyzer.analyze(bitmap) }
         val secDeferred = async(Dispatchers.Default) { securityPatternAnalyzer.analyze(bitmap) }
 
         // === Layer 3: ELA ===
         val elaResult = elaDeferred.await()
-(feat: Upgraded pipeline with SRM Noise, Typography, and Security Pattern Analyzers)
         results.add(elaResult)
         onLayerComplete(elaResult)
 
-        // === Layer 4: CNN + SRM (Server) ===
-        val cnnResult = cnnDeferred.await()
-        results.add(cnnResult)
-        onLayerComplete(cnnResult)
+        // === Layer 4: DocTamper & SRM (Server) ===
+        val cnnResults = cnnDeferred.await()
+        results.addAll(cnnResults)
+        cnnResults.forEach { onLayerComplete(it) }
 
         // === Layer 5: Typography Analysis ===
         val typoResult = typoDeferred.await()
@@ -100,7 +99,7 @@ class DocumentForensicPipeline(context: Context) {
         buildReport(results, ocrResult?.documentType ?: "Unknown")
     }
 
-    private suspend fun runCnnBackend(bitmap: Bitmap): LayerResult {
+    private suspend fun runCnnBackend(bitmap: Bitmap): List<LayerResult> {
         return try {
             val stream = ByteArrayOutputStream()
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
@@ -113,39 +112,55 @@ class DocumentForensicPipeline(context: Context) {
 
             if (response.isSuccessful && response.body() != null) {
                 val cnnRes = response.body()!!
-                LayerResult(
-                    layerName = "CNN + SRM Forgery Detection",
+                val docTamperLayer = LayerResult(
+                    layerName = "DocTamper AI Analysis",
                     passed = !cnnRes.is_forged,
                     riskLevel = if (cnnRes.forgery_probability > 0.6f) RiskLevel.FORGED
                                else if (cnnRes.forgery_probability > 0.3f) RiskLevel.SUSPICIOUS
                                else RiskLevel.CLEAR,
                     score = cnnRes.forgery_probability,
-                    details = listOf("Combined Forgery Score: ${(cnnRes.forgery_probability * 100).toInt()}%")
+                    details = listOf(
+                        "Forgery Confidence: ${"%.0f".format(cnnRes.forgery_probability * 100)}%",
+                        "Pixels Tampered: ${"%.0f".format(cnnRes.doctamper_pixel_ratio * 100)}%"
+                    )
                 )
+                
+                val srmLayer = LayerResult(
+                    layerName = "SRM Noise Analysis",
+                    passed = cnnRes.srm_score < 0.3f,
+                    riskLevel = if (cnnRes.srm_score > 0.6f) RiskLevel.FORGED
+                               else if (cnnRes.srm_score > 0.3f) RiskLevel.SUSPICIOUS
+                               else RiskLevel.CLEAR,
+                    score = cnnRes.srm_score,
+                    details = listOf(if (cnnRes.srm_details.isNotEmpty()) cnnRes.srm_details else "No noise inconsistencies detected")
+                )
+                
+                listOf(docTamperLayer, srmLayer)
             } else {
-                Log.e("CNN_API", "API Error: ${response.errorBody()?.string()}")
-                LayerResult(
-                    layerName = "CNN + SRM Forgery Detection",
+                Log.e("DOCTAMPER_API", "API Error: ${response.errorBody()?.string()}")
+                listOf(LayerResult(
+                    layerName = "DocTamper AI Analysis",
                     passed = true,
                     riskLevel = RiskLevel.CLEAR,
-                    score = 0f,
-                    details = listOf("ML Server unavailable - skipped")
-                )
+                    score = 0.0f,
+                    details = listOf("Warning: Backend analysis failed (API Error)")
+                ))
             }
         } catch (e: Exception) {
-            Log.e("CNN_API", "Network Error", e)
-            LayerResult(
-                layerName = "CNN + SRM Forgery Detection",
+            Log.e("DOCTAMPER_API", "Network Error", e)
+            listOf(LayerResult(
+                layerName = "DocTamper AI Analysis",
                 passed = true,
                 riskLevel = RiskLevel.CLEAR,
-                score = 0f,
-                details = listOf("ML Server offline - skipped")
-            )
+                score = 0.0f,
+                details = listOf("Warning: Could not reach backend server")
+            ))
         }
     }
 
+
     private fun buildReport(results: List<LayerResult>, documentType: String): AggregatedReport {
-        // Weights: OCR(5%) Rules(25%) ELA(15%) CNN+SRM(10%) Typography(20%) Security(25%)
+        // Weights: OCR(5%) Rules(25%) ELA(15%) DocTamper(10%) Typography(20%) Security(25%)
         val weights = listOf(0.05f, 0.25f, 0.15f, 0.10f, 0.20f, 0.25f)
         val weightedScore = results.mapIndexed { i, r ->
             r.score * (weights.getOrElse(i) { 0f })
@@ -182,4 +197,7 @@ class DocumentForensicPipeline(context: Context) {
         typographyAnalyzer.release()
     }
 }
+
+
+
 

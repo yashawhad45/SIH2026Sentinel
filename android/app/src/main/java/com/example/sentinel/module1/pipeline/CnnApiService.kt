@@ -11,7 +11,10 @@ import retrofit2.http.Part
 data class CnnResponse(
     val filename: String,
     val forgery_probability: Float,
-    val is_forged: Boolean
+    val is_forged: Boolean,
+    val doctamper_pixel_ratio: Float,
+    val srm_score: Float,
+    val srm_details: String
 )
 
 interface CnnApi {
@@ -25,7 +28,7 @@ interface CnnApi {
 object CnnApiClient {
     // 10.0.2.2 is the special IP to access the host machine's localhost from the Android Emulator
     // If testing on a real device, change this to your laptop's local IP (e.g., "http://192.168.1.x:8000/")
-    private const val BASE_URL = "http://192.168.0.88:8000/"
+    private const val BASE_URL = "http://192.168.0.221:8000/"
 
     val api: CnnApi by lazy {
         Retrofit.Builder()
@@ -35,6 +38,8 @@ object CnnApiClient {
             .create(CnnApi::class.java)
     }
 }
+
+
 
 
 
