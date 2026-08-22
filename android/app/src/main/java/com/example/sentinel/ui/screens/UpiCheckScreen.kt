@@ -1,3 +1,10 @@
+/*
+ * DEMO CHECKLIST:
+ * 1) Start the FastAPI server on your laptop first:
+ *    cd ml-server/module3/ && uvicorn src.api:app --reload --port 8000
+ * 2) Confirm http://10.0.2.2:8000/health responds "ok" from the emulator's Chrome browser before testing this screen.
+ * 3) Test both quick-fill buttons ("Load Safe Example" / "Load Risky Example") and confirm the risk tiers differ visibly.
+ */
 package com.example.sentinel.ui.screens
 
 import androidx.compose.foundation.background
