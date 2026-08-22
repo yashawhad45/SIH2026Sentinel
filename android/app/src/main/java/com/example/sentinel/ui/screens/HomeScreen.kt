@@ -57,7 +57,7 @@ import com.example.sentinel.ui.theme.TextPrimary
 import com.example.sentinel.ui.theme.TextSecondary
 
 @Composable
-fun HomeScreen(onModule1Click: () -> Unit) {
+fun HomeScreen(onModule1Click: () -> Unit, onModule3Click: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -161,15 +161,15 @@ fun HomeScreen(onModule1Click: () -> Unit) {
 
             ModuleCard(
                 icon = Icons.Filled.Stars,
-                title = "Module III",
-                description = "Reserved for next-generation forensic capability. Details to be announced.",
-                statusLabel = "LOCKED",
-                statusColor = TextHint,
-                statusBgColor = ModuleLocked,
-                iconBgBrush = Brush.linearGradient(listOf(ModuleLocked, ModuleLocked)),
-                borderColor = StrokeColor,
-                isEnabled = false,
-                onClick = {}
+                title = "UPI Fraud Analysis",
+                description = "Real-time, on-device analysis of UPI transactions to detect phishing, social engineering, and behavioral anomalies.",
+                statusLabel = "ACTIVE",
+                statusColor = RiskClear,
+                statusBgColor = Color(0xFF0D2B1A),
+                iconBgBrush = Brush.linearGradient(listOf(Color(0xFF00D4FF), Color(0xFF0099CC))),
+                borderColor = CyanAccent,
+                isEnabled = true,
+                onClick = onModule3Click
             )
 
             Spacer(modifier = Modifier.height(32.dp))

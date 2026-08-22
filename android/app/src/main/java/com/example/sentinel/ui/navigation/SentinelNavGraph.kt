@@ -12,6 +12,7 @@ import com.example.sentinel.ui.screens.DocumentCaptureScreen
 import com.example.sentinel.ui.screens.HomeScreen
 import com.example.sentinel.ui.screens.ReportScreen
 import com.example.sentinel.ui.screens.SplashScreen
+import com.example.sentinel.ui.screens.UpiCheckScreen
 
 @Composable
 fun SentinelNavGraph(
@@ -37,6 +38,9 @@ fun SentinelNavGraph(
             HomeScreen(
                 onModule1Click = {
                     navController.navigate(SentinelRoutes.DOCUMENT_CAPTURE)
+                },
+                onModule3Click = {
+                    navController.navigate(SentinelRoutes.UPI_CHECK)
                 }
             )
         }
@@ -72,6 +76,12 @@ fun SentinelNavGraph(
                         popUpTo(SentinelRoutes.HOME) { inclusive = false }
                     }
                 },
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(SentinelRoutes.UPI_CHECK) {
+            UpiCheckScreen(
                 onBack = { navController.popBackStack() }
             )
         }
