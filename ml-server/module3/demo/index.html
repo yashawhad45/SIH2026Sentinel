@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sentinel UPI Fraud Detection — Live Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: #111827;
+      --card-border: #1f293d;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --accent-low: #10b981;
+      --accent-caution: #f59e0b;
+      --accent-high: #ef4444;
+      --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px;
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 1440px;
+      margin: 0 auto;
+    }
+
+    /* ── Header ────────────────────────────────────────── */
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 20px;
+      border-bottom: 2px solid var(--card-border);
+      margin-bottom: 24px;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-badge {
+      background: linear-gradient(135deg, #2563eb, #7c3aed);
+      color: #fff;
+      font-weight: 800;
+      font-size: 14px;
+      letter-spacing: 1px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: #ffffff;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    .api-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      background: #0f172a;
+      padding: 8px 16px;
+      border-radius: 30px;
+      border: 1px solid var(--card-border);
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 10px #10b981;
+    }
+
+    /* ── Preset Buttons Bar ────────────────────────────── */
+    .presets-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      padding: 14px 20px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+    }
+
+    .presets-label {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-preset {
+      cursor: pointer;
+      font-family: var(--font-sans);
+      font-size: 14px;
+      font-weight: 600;
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-preset-low {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border-color: rgba(16, 185, 129, 0.3);
+    }
+    .btn-preset-low:hover {
+      background: rgba(16, 185, 129, 0.25);
+    }
+
+    .btn-preset-caution {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      border-color: rgba(245, 158, 11, 0.3);
+    }
+    .btn-preset-caution:hover {
+      background: rgba(245, 158, 11, 0.25);
+    }
+
+    .btn-preset-high {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+    .btn-preset-high:hover {
+      background: rgba(239, 68, 68, 0.25);
+    }
+
+    /* ── Main Layout ───────────────────────────────────── */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1.25fr 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    @media (max-width: 1080px) {
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ── Cards & Sections ──────────────────────────────── */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 24px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #60a5fa;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      padding-bottom: 8px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px 16px;
+      margin-bottom: 20px;
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.2px;
+    }
+
+    input, select {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      font-weight: 500;
+      background: #0b1120;
+      color: #ffffff;
+      border: 1px solid var(--card-border);
+      padding: 10px 12px;
+      border-radius: 8px;
+      outline: none;
+      transition: all 0.2s ease;
+      width: 100%;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+    }
+
+    .btn-submit {
+      width: 100%;
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: #ffffff;
+      border: none;
+      font-family: var(--font-sans);
+      font-size: 18px;
+      font-weight: 700;
+      padding: 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+      transition: all 0.2s ease;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .btn-submit:hover {
+      background: linear-gradient(135deg, #1d4ed8, #1e40af);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5);
+    }
+
+    .btn-submit:active {
+      transform: translateY(0);
+    }
+
+    /* ── Results Panel ─────────────────────────────────── */
+    .results-sticky {
+      position: sticky;
+      top: 24px;
+    }
+
+    .score-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 24px;
+      border-radius: 12px;
+      background: #0b1120;
+      border: 1px solid var(--card-border);
+      margin-bottom: 20px;
+    }
+
+    .score-block {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .score-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .score-number {
+      font-family: var(--font-mono);
+      font-size: 72px;
+      font-weight: 900;
+      line-height: 1;
+      margin-top: 4px;
+      color: var(--accent-low);
+      transition: color 0.3s ease;
+    }
+
+    .score-denominator {
+      font-size: 20px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .tier-badge {
+      font-size: 18px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 10px 24px;
+      border-radius: 30px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .tier-low {
+      background: rgba(16, 185, 129, 0.2);
+      color: #34d399;
+      border: 2px solid #10b981;
+    }
+
+    .tier-caution {
+      background: rgba(245, 158, 11, 0.2);
+      color: #fbbf24;
+      border: 2px solid #f59e0b;
+    }
+
+    .tier-high {
+      background: rgba(239, 68, 68, 0.2);
+      color: #f87171;
+      border: 2px solid #ef4444;
+    }
+
+    .explanation-box {
+      background: #0f172a;
+      border-left: 4px solid var(--primary);
+      padding: 16px 20px;
+      border-radius: 0 8px 8px 0;
+      font-size: 16px;
+      font-weight: 500;
+      margin-bottom: 24px;
+      color: #e2e8f0;
+    }
+
+    .flags-card {
+      background: #0b1120;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 18px 20px;
+    }
+
+    .flags-header {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+    }
+
+    .flags-list {
+      list-style-type: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .flag-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      background: rgba(255, 255, 255, 0.03);
+      padding: 10px 14px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .flag-icon {
+      color: #f87171;
+      font-size: 16px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .no-flags {
+      color: #34d399;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      padding: 8px 0;
+    }
+
+    /* ── Loading & Errors ──────────────────────────────── */
+    .loading-overlay {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-weight: 600;
+      font-size: 16px;
+      color: #60a5fa;
+      padding: 16px;
+    }
+
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(59, 130, 246, 0.2);
+      border-top-color: #3b82f6;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <div class="brand">
+        <span class="brand-badge">Module 3</span>
+        <div>
+          <h1>Sentinel UPI Fraud Detection</h1>
+          <div class="subtitle">Real-time ML Anomaly Scoring & Behavioral Analysis Engine</div>
+        </div>
+      </div>
+      <div class="api-status">
+        <div class="status-dot"></div>
+        <span>FastAPI Live :8000</span>
+      </div>
+    </header>
+
+    <!-- Presets Toolbar -->
+    <div class="presets-bar">
+      <span class="presets-label">⚡ Quick Scenarios:</span>
+      <button type="button" class="btn-preset btn-preset-low" onclick="loadPreset('low')">
+        🟢 Load Low-Risk Example (Coffee P2M)
+      </button>
+      <button type="button" class="btn-preset btn-preset-caution" onclick="loadPreset('caution')">
+        🟡 Load Caution Example (Late Night / Unverified)
+      </button>
+      <button type="button" class="btn-preset btn-preset-high" onclick="loadPreset('high')">
+        🔴 Load High-Risk Example (Phishing + Screen Share)
+      </button>
+    </div>
+
+    <!-- Main 2-Column Content -->
+    <div class="main-grid">
+      <!-- Left Column: Form -->
+      <div class="card">
+        <form id="fraud-form" onsubmit="event.preventDefault(); submitTransaction();">
+          
+          <!-- Section 1 -->
+          <div class="section-title">💳 Primary Transaction Parameters</div>
+          <div class="form-grid">
+            <div class="field-group">
+              <label for="amount">Amount (₹)</label>
+              <input type="number" step="0.01" id="amount" name="amount" value="450.00" required />
+            </div>
+            <div class="field-group">
+              <label for="transaction_time_of_day">Time of Day (Hour 0-23)</label>
+              <input type="number" id="transaction_time_of_day" name="transaction_time_of_day" min="0" max="23" value="15" required />
+            </div>
+            <div class="field-group">
+              <label for="transaction_type">Transaction Type</label>
+              <select id="transaction_type" name="transaction_type">
+                <option value="payment" selected>Payment</option>
+                <option value="collection_request">Collection Request</option>
+                <option value="bill_pay">Bill Pay</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label for="session_source">Session Source</label>
+              <select id="session_source" name="session_source">
+                <option value="app" selected>UPI App</option>
+                <option value="link">Web / SMS Link</option>
+                <option value="qr">QR Scan</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label for="merchant_category_code">Merchant Category</label>
+              <select id="merchant_category_code" name="merchant_category_code">
+                <option value="food" selected>Food / Dining</option>
+                <option value="retail">Retail / Grocery</option>
+                <option value="entertainment">Entertainment</option>
+                <option value="unknown">Unknown</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label for="authorization_method">Auth Method</label>
+              <select id="authorization_method" name="authorization_method">
+                <option value="pin" selected>UPI PIN</option>
+                <option value="biometric">Biometric</option>
+                <option value="otp">OTP</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Section 2 -->
+          <div class="section-title">👤 Payee & Account Profile</div>
+          <div class="form-grid">
+            <div class="field-group">
+              <label for="handle_verification_status">Handle Verification</label>
+              <select id="handle_verification_status" name="handle_verification_status">
+                <option value="verified" selected>Verified</option>
+                <option value="unverified">Unverified</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label for="receiver_account_age">Receiver Account Age (Days)</label>
+              <input type="number" id="receiver_account_age" name="receiver_account_age" value="420" required />
+            </div>
+            <div class="field-group">
+              <label for="receiver_transaction_history">Receiver History Count</label>
+              <input type="number" id="receiver_transaction_history" name="receiver_transaction_history" value="25" required />
+            </div>
+            <div class="field-group">
+              <label for="business_name_match">Business Name Match</label>
+              <select id="business_name_match" name="business_name_match">
+                <option value="match" selected>Match</option>
+                <option value="partial">Partial Match</option>
+                <option value="mismatch">Mismatch</option>
+                <option value="none">None</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label for="handle_registration_pattern">Handle Pattern</label>
+              <select id="handle_registration_pattern" name="handle_registration_pattern">
+                <option value="standard" selected>Standard</option>
+                <option value="recent">Recently Registered</option>
+                <option value="random_alphanumeric">Random Alphanumeric</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label for="handle_typo_analysis">Handle Typo Analysis</label>
+              <select id="handle_typo_analysis" name="handle_typo_analysis">
+                <option value="none" selected>None</option>
+                <option value="typo_squatting">Typo-squatting</option>
+                <option value="suspicious">Suspicious</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Section 3 -->
+          <div class="section-title">📱 Device & Behavioral Security Signals</div>
+          <div class="form-grid">
+            <div class="field-group">
+              <label for="recognized_screen_sharing_apps">Screen Sharing Apps</label>
+              <select id="recognized_screen_sharing_apps" name="recognized_screen_sharing_apps">
+                <option value="[]" selected>None Detected</option>
+                <option value="['AnyDesk']">AnyDesk Active</option>
+                <option value="['TeamViewer']">TeamViewer Active</option>
+                <option value="['RustDesk']">RustDesk Active</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label for="unusual_device_flag">Unusual Device Flag</label>
+              <select id="unusual_device_flag" name="unusual_device_flag">
+                <option value="0" selected>0 (Known Device)</option>
+                <option value="1">1 (Unusual / New)</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label for="unusual_ip_flag">Unusual IP Flag</label>
+              <select id="unusual_ip_flag" name="unusual_ip_flag">
+                <option value="0" selected>0 (Normal Subnet)</option>
+                <option value="1">1 (Suspicious / VPN)</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label for="geographic_disparity">Geo Disparity (Km)</label>
+              <input type="number" step="0.1" id="geographic_disparity" name="geographic_disparity" value="12.5" />
+            </div>
+            <div class="field-group">
+              <label for="time_pressure_indicators">Time Pressure Score (0-3)</label>
+              <input type="number" id="time_pressure_indicators" name="time_pressure_indicators" min="0" max="5" value="0" />
+            </div>
+            <div class="field-group">
+              <label for="authentication_attempt_count">Auth Attempt Count</label>
+              <input type="number" id="authentication_attempt_count" name="authentication_attempt_count" min="1" max="10" value="1" />
+            </div>
+          </div>
+
+          <!-- Hidden default fields to ensure complete TransactionInput model schema -->
+          <input type="hidden" name="session_duration" value="180" />
+          <input type="hidden" name="authentication_attempts" value="1" />
+          <input type="hidden" name="transaction_amount_vs_sender_history" id="transaction_amount_vs_sender_history" value="0.95" />
+          <input type="hidden" name="time_between_link_click_and_transaction" id="time_between_link_click_and_transaction" value="0" />
+          <input type="hidden" name="unusual_location_flag" id="unusual_location_flag" value="0" />
+          <input type="hidden" name="dns_lookup_age" value="0" />
+          <input type="hidden" name="recent_app_installs" value="[]" />
+          <input type="hidden" name="input_timing_consistency" value="0.95" />
+          <input type="hidden" name="app_switching_frequency" value="0" />
+          <input type="hidden" name="keyboard_input_speed" value="1.2" />
+          <input type="hidden" name="input_pause_patterns" value="0.05" />
+          <input type="hidden" name="permissions_granted" value="[]" />
+          <input type="hidden" name="screen_active_time" value="195" />
+          <input type="hidden" name="geographic_location_vs_ip" value="12.5" />
+          <input type="hidden" name="background_data_usage" value="0.15" />
+          <input type="hidden" name="time_between_otp_generation_and_input" value="0" />
+          <input type="hidden" name="pin_entry_method" value="manual" />
+          <input type="hidden" name="pin_entry_speed" value="1.3" />
+          <input type="hidden" name="unusual_transaction_amount_flag" id="unusual_transaction_amount_flag" value="0" />
+          <input type="hidden" name="otp_request_frequency" value="0" />
+          <input type="hidden" name="otp_request_device_consistency" value="1" />
+          <input type="hidden" name="transaction_velocity" value="1" />
+          <input type="hidden" name="failed_transaction_count" value="0" />
+          <input type="hidden" name="request_description_keywords" value="[]" />
+          <input type="hidden" name="request_amount_roundness" value="1.0" />
+          <input type="hidden" name="request_frequency" value="0" />
+          <input type="hidden" name="request_acceptance_rate" value="0.0" />
+          <input type="hidden" name="time_to_respond_to_request" value="0" />
+          <input type="hidden" name="requester_account_age" value="0" />
+          <input type="hidden" name="handle_similarity_score" value="0.0" />
+          <input type="hidden" name="handle_transaction_history" value="15" />
+          <input type="hidden" name="handle_to_description_consistency" value="1" />
+
+          <!-- Submit Button -->
+          <button type="submit" id="btn-check" class="btn-submit">
+            🔍 Check Risk Score
+          </button>
+
+          <div id="loading" class="loading-overlay">
+            <div class="spinner"></div>
+            <span>Evaluating transaction with Sentinel ML Engine...</span>
+          </div>
+        </form>
+      </div>
+
+      <!-- Right Column: Live Results Panel -->
+      <div class="card results-sticky">
+        <div class="section-title">📊 Risk Evaluation Result</div>
+
+        <div class="score-banner">
+          <div class="score-block">
+            <span class="score-title">Fraud Risk Score</span>
+            <div>
+              <span id="res-score" class="score-number">--</span>
+              <span class="score-denominator">/ 100</span>
+            </div>
+          </div>
+          <div id="res-badge" class="tier-badge tier-low">
+            LOW RISK
+          </div>
+        </div>
+
+        <div id="res-explanation" class="explanation-box">
+          Click "Check Risk Score" or select a preset to evaluate this transaction.
+        </div>
+
+        <div class="flags-card">
+          <div class="flags-header">🛡️ Detected Security Flags</div>
+          <ul id="res-flags" class="flags-list">
+            <li class="no-flags">✅ No anomalous risk indicators detected</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = "http://localhost:8000/check-transaction";
+
+    const PRESETS = {
+      low: {
+        amount: 450.00,
+        transaction_time_of_day: 15,
+        transaction_type: "payment",
+        session_source: "app",
+        merchant_category_code: "food",
+        authorization_method: "pin",
+        handle_verification_status: "verified",
+        receiver_account_age: 420,
+        receiver_transaction_history: 25,
+        business_name_match: "match",
+        handle_registration_pattern: "standard",
+        handle_typo_analysis: "none",
+        recognized_screen_sharing_apps: "[]",
+        unusual_device_flag: 0,
+        unusual_ip_flag: 0,
+        geographic_disparity: 12.5,
+        time_pressure_indicators: 0,
+        authentication_attempt_count: 1,
+        transaction_amount_vs_sender_history: 0.95,
+        unusual_transaction_amount_flag: 0
+      },
+      caution: {
+        amount: 3200.00,
+        transaction_time_of_day: 23,
+        transaction_type: "payment",
+        session_source: "app",
+        merchant_category_code: "unknown",
+        authorization_method: "pin",
+        handle_verification_status: "unverified",
+        receiver_account_age: 45,
+        receiver_transaction_history: 5,
+        business_name_match: "none",
+        handle_registration_pattern: "none",
+        handle_typo_analysis: "none",
+        recognized_screen_sharing_apps: "[]",
+        unusual_device_flag: 0,
+        unusual_ip_flag: 0,
+        geographic_disparity: 150.0,
+        time_pressure_indicators: 0,
+        authentication_attempt_count: 1,
+        transaction_amount_vs_sender_history: 2.1,
+        unusual_transaction_amount_flag: 0
+      },
+      high: {
+        amount: 75000.00,
+        transaction_time_of_day: 3,
+        transaction_type: "payment",
+        session_source: "link",
+        merchant_category_code: "unknown",
+        authorization_method: "pin",
+        handle_verification_status: "unverified",
+        receiver_account_age: 0,
+        receiver_transaction_history: 0,
+        business_name_match: "mismatch",
+        handle_registration_pattern: "random_alphanumeric",
+        handle_typo_analysis: "suspicious",
+        recognized_screen_sharing_apps: "['AnyDesk']",
+        unusual_device_flag: 1,
+        unusual_ip_flag: 1,
+        geographic_disparity: 9800.0,
+        time_pressure_indicators: 2,
+        authentication_attempt_count: 3,
+        transaction_amount_vs_sender_history: 15.5,
+        unusual_transaction_amount_flag: 1
+      }
+    };
+
+    function loadPreset(key) {
+      const p = PRESETS[key];
+      if (!p) return;
+
+      const form = document.getElementById("fraud-form");
+      for (const [k, v] of Object.entries(p)) {
+        const el = form.elements[k];
+        if (el) el.value = v;
+      }
+      submitTransaction();
+    }
+
+    async function submitTransaction() {
+      const form = document.getElementById("fraud-form");
+      const formData = new FormData(form);
+      const payload = {};
+
+      for (const [k, v] of formData.entries()) {
+        const num = Number(v);
+        payload[k] = (!isNaN(num) && v.trim() !== "") ? num : v;
+      }
+
+      const btn = document.getElementById("btn-check");
+      const loading = document.getElementById("loading");
+
+      btn.style.display = "none";
+      loading.style.display = "flex";
+
+      try {
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+          throw new Error(`Server returned HTTP ${res.status}: ${res.statusText}`);
+        }
+
+        const data = await res.json();
+        renderResults(data);
+      } catch (err) {
+        document.getElementById("res-score").textContent = "ERR";
+        document.getElementById("res-score").style.color = "var(--accent-high)";
+        document.getElementById("res-explanation").textContent = "⚠️ Error: Unable to connect to FastAPI backend at " + API_URL + ". Make sure the server is running.";
+        document.getElementById("res-flags").innerHTML = `<li class="flag-item"><span class="flag-icon">⚠️</span><span>${err.message}</span></li>`;
+      } finally {
+        btn.style.display = "flex";
+        loading.style.display = "none";
+      }
+    }
+
+    function renderResults(data) {
+      const scoreEl = document.getElementById("res-score");
+      const badgeEl = document.getElementById("res-badge");
+      const expEl = document.getElementById("res-explanation");
+      const flagsEl = document.getElementById("res-flags");
+
+      scoreEl.textContent = data.risk_score;
+      expEl.textContent = data.explanation;
+
+      // Color tier mapping
+      badgeEl.className = "tier-badge";
+      if (data.risk_tier === "low") {
+        badgeEl.classList.add("tier-low");
+        badgeEl.textContent = "🟢 LOW RISK";
+        scoreEl.style.color = "var(--accent-low)";
+      } else if (data.risk_tier === "caution") {
+        badgeEl.classList.add("tier-caution");
+        badgeEl.textContent = "🟡 CAUTION";
+        scoreEl.style.color = "var(--accent-caution)";
+      } else {
+        badgeEl.classList.add("tier-high");
+        badgeEl.textContent = "🔴 HIGH RISK";
+        scoreEl.style.color = "var(--accent-high)";
+      }
+
+      // Flags list
+      flagsEl.innerHTML = "";
+      if (!data.flags || data.flags.length === 0) {
+        flagsEl.innerHTML = '<li class="no-flags">✅ No anomalous risk indicators detected</li>';
+      } else {
+        data.flags.forEach(flag => {
+          const li = document.createElement("li");
+          li.className = "flag-item";
+          li.innerHTML = `<span class="flag-icon">🚩</span><span>${flag}</span>`;
+          flagsEl.appendChild(li);
+        });
+      }
+    }
+
+    // Auto-run on load
+    window.addEventListener("DOMContentLoaded", () => {
+      submitTransaction();
+    });
+  </script>
+</body>
+</html>
