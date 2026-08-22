@@ -4,10 +4,10 @@
     "models": {
         "Logistic Regression": {
             "model_name": "Logistic Regression",
-            "accuracy": 0.9992,
-            "precision": 0.9956,
+            "accuracy": 0.9996,
+            "precision": 0.9978,
             "recall": 1.0,
-            "f1_score": 0.9978,
+            "f1_score": 0.9989,
             "roc_auc": 1.0
         },
         "Random Forest": {

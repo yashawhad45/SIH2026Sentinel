@@ -161,6 +161,13 @@ def check_transaction(transaction: Dict[str, Any]) -> Dict[str, Any]:
     cols_to_drop_present = [col for col in COLUMNS_TO_DROP if col in raw_df.columns]
     df_clean = raw_df.drop(columns=cols_to_drop_present)
 
+    # Fix 'business_name_match' leakage to match data_prep.py
+    if "business_name_match" in df_clean.columns:
+        df_clean["has_business_name_match"] = ((df_clean["business_name_match"] != "none") & 
+                                               df_clean["business_name_match"].notna() & 
+                                               (df_clean["business_name_match"] != "")).astype(int)
+        df_clean = df_clean.drop(columns=["business_name_match"])
+
     # 2. One-hot encode remaining categorical columns
     # In single-row inference, dummy indicators match presence of categories
     df_encoded = pd.get_dummies(df_clean, dtype=int)
