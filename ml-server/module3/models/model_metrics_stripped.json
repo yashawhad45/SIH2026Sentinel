@@ -1,0 +1,40 @@
+{
+    "best_model": "Random Forest",
+    "best_f1_score": 1.0,
+    "dropped_leakage_features": [
+        "handle_verification_status",
+        "merchant_category_code",
+        "session_source",
+        "transaction_type",
+        "recognized_screen_sharing_apps",
+        "unusual_device_flag",
+        "unusual_ip_flag"
+    ],
+    "remaining_features_count": 654,
+    "models": {
+        "Logistic Regression": {
+            "model_name": "Logistic Regression",
+            "accuracy": 0.9996,
+            "precision": 0.9978,
+            "recall": 1.0,
+            "f1_score": 0.9989,
+            "roc_auc": 1.0
+        },
+        "Random Forest": {
+            "model_name": "Random Forest",
+            "accuracy": 1.0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1_score": 1.0,
+            "roc_auc": 1.0
+        },
+        "XGBoost": {
+            "model_name": "XGBoost",
+            "accuracy": 1.0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1_score": 1.0,
+            "roc_auc": 1.0
+        }
+    }
+}
