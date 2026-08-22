@@ -43,7 +43,9 @@ class TfliteClassifier(private val context: Context) : ForensicModule {
         }
     }
 
-    override suspend fun analyze(bitmap: Bitmap): LayerResult {
+    override suspend fun analyze(input: com.example.sentinel.core.ModuleInput): LayerResult {
+        if (input !is com.example.sentinel.core.ModuleInput.ImageInput) throw IllegalArgumentException("Expected ImageInput")
+        val bitmap = input.bitmap
         val localInterpreter = interpreter ?: return LayerResult.unavailable(moduleName)
 
         val resizedBitmap = Bitmap.createScaledBitmap(bitmap, inputSize, inputSize, true)

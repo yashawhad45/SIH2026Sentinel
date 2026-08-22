@@ -26,7 +26,7 @@ class RuleValidator : ForensicModule {
 
     private val panRegex = Regex("""^[A-Z]{5}[0-9]{4}[A-Z]$""")
 
-    override suspend fun analyze(bitmap: Bitmap) = LayerResult.unavailable(moduleName)
+    override suspend fun analyze(input: com.example.sentinel.core.ModuleInput) = LayerResult.unavailable(moduleName)
 
     fun validateWithOcrResult(ocrResult: OcrResult): LayerResult {
         val rawId = ocrResult.idNumber.replace(" ", "").uppercase()

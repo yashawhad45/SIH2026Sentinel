@@ -15,7 +15,9 @@ class CopyMoveDetector : ForensicModule {
     private val suspiciousPairCount = 3
     private val forgedPairCount = 8
 
-    override suspend fun analyze(bitmap: Bitmap): LayerResult {
+    override suspend fun analyze(input: com.example.sentinel.core.ModuleInput): LayerResult {
+        if (input !is com.example.sentinel.core.ModuleInput.ImageInput) throw IllegalArgumentException("Expected ImageInput")
+        val bitmap = input.bitmap
         val scaledBitmap = scaleBitmapForAnalysis(bitmap)
         val blocks = extractBlocks(scaledBitmap)
         val hashes = blocks.map { block -> Pair(block, computeDctHash(block.pixels)) }

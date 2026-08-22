@@ -57,7 +57,7 @@ class DocumentForensicPipeline(context: Context) {
         results.add(ruleResult)
         onLayerComplete(ruleResult)
 
-        val elaResult = elaAnalyzer.analyze(bitmap)
+        val elaResult = elaAnalyzer.analyze(com.example.sentinel.core.ModuleInput.ImageInput(bitmap))
         results.add(elaResult)
         onLayerComplete(elaResult)
 

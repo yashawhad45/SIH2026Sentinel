@@ -16,7 +16,7 @@ class QrCrossVerifier : ForensicModule {
 
     override val moduleName = "QR Cross-Verification"
 
-    override suspend fun analyze(bitmap: Bitmap): LayerResult {
+    override suspend fun analyze(input: com.example.sentinel.core.ModuleInput): LayerResult {
         return LayerResult.unavailable(moduleName)
     }
 

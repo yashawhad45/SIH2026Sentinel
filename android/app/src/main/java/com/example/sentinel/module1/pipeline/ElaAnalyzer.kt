@@ -16,7 +16,9 @@ class ElaAnalyzer : ForensicModule {
     private val suspiciousThreshold = 0.15f
     private val forgedThreshold = 0.30f
 
-    override suspend fun analyze(bitmap: Bitmap): LayerResult {
+    override suspend fun analyze(input: com.example.sentinel.core.ModuleInput): LayerResult {
+        if (input !is com.example.sentinel.core.ModuleInput.ImageInput) throw IllegalArgumentException("Expected ImageInput")
+        val bitmap = input.bitmap
         val scaledBitmap = scaleBitmapForProcessing(bitmap)
         val recompressed = recompressBitmap(scaledBitmap)
         val (meanScore, heatmap) = computeHeatmap(scaledBitmap, recompressed)
