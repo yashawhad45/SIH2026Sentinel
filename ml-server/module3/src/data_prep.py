@@ -3,13 +3,14 @@ src/data_prep.py
 Data Preparation Pipeline for UPI Fraud Detection:
 1. Loads raw dataset from data/fraud_dataset.csv
 2. Drops non-generalizable/high-cardinality/zero-variance columns
-3. One-hot encodes remaining categorical columns
+3. One-hot encodes remaining categorical columns & sanitizes column names
 4. Performs stratified 80/20 train-test split (random_state=42)
 5. Saves processed splits (X_train, X_test, y_train, y_test) & feature_columns to data/processed/*.pkl
 6. Prints final shapes and class distributions (% fraud)
 """
 
 import os
+import re
 import joblib
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -42,6 +43,11 @@ COLUMNS_TO_DROP = [
 TARGET_COLUMN = "is_fraud"
 
 
+def sanitize_column_name(name: str) -> str:
+    """Sanitize column names for compatibility with tree algorithms like XGBoost."""
+    return re.sub(r"[\[\]<>]", "_", str(name))
+
+
 def prepare_data(
     raw_path: str = RAW_DATA_PATH,
     processed_dir: str = PROCESSED_DIR,
@@ -68,6 +74,9 @@ def prepare_data(
     # 3. One-hot encode remaining categorical columns
     print("One-hot encoding categorical/text features...")
     X_encoded = pd.get_dummies(X, drop_first=True, dtype=int)
+    
+    # Sanitize feature column names for XGBoost compatibility
+    X_encoded.columns = [sanitize_column_name(col) for col in X_encoded.columns]
     feature_columns = list(X_encoded.columns)
     print(f"Total encoded features: {len(feature_columns)}")
 
