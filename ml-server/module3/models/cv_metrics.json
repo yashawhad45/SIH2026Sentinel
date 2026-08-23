@@ -1,0 +1,18 @@
+{
+    "Random Forest": {
+        "Accuracy_mean": 1.0,
+        "Accuracy_std": 0.0,
+        "F1_mean": 1.0,
+        "F1_std": 0.0,
+        "ROC_AUC_mean": 1.0,
+        "ROC_AUC_std": 0.0
+    },
+    "XGBoost": {
+        "Accuracy_mean": 1.0,
+        "Accuracy_std": 0.0,
+        "F1_mean": 1.0,
+        "F1_std": 0.0,
+        "ROC_AUC_mean": 1.0,
+        "ROC_AUC_std": 0.0
+    }
+}
