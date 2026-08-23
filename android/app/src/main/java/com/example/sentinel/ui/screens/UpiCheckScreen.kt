@@ -558,14 +558,7 @@ fun UpiCheckScreen(
                                 fontWeight = FontWeight.Bold
                             )
                             Spacer(modifier = Modifier.height(16.dp))
-                            r.details.forEach { detail ->
-                                Text(
-                                    text = detail,
-                                    color = if (detail.startsWith(" • ")) r.riskLevel.color else TextSecondary,
-                                    fontSize = 13.sp,
-                                    modifier = Modifier.padding(bottom = 6.dp)
-                                )
-                            }
+                            // Explainable AI text removed as per user request
                         }
                     }
                 }

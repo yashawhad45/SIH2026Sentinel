@@ -9,7 +9,7 @@ enum class RiskLevel(
     val score: Float
 ) {
     CLEAR(
-        displayLabel = "CLEAR",
+        displayLabel = "NOT SUSPICIOUS",
         color = Color(0xFF00E676),
         backgroundColor = Color(0xFF0D2B1A),
         score = 0.0f
@@ -21,7 +21,7 @@ enum class RiskLevel(
         score = 0.5f
     ),
     FORGED(
-        displayLabel = "FORGED",
+        displayLabel = "VERY RISKY",
         color = Color(0xFFFF3B3B),
         backgroundColor = Color(0xFF2B0D0D),
         score = 1.0f
