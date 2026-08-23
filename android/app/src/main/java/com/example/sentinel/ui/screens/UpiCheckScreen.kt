@@ -137,7 +137,7 @@ fun UpiCheckScreen(
     )
 
     fun loadSafeExample() {
-        upiId = ""
+        upiId = "shopkeeper@okhdfcbank"
         amount = "450"
         receiverAccountAge = "420"
         transactionTimeOfDay = 15f
@@ -146,7 +146,7 @@ fun UpiCheckScreen(
     }
 
     fun loadRiskyExample() {
-        upiId = "random_scammer_99@ybl"
+        upiId = "newpay1234@upi"
         amount = "75000"
         receiverAccountAge = "0"
         transactionTimeOfDay = 3f
