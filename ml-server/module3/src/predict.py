@@ -182,10 +182,25 @@ def check_transaction(transaction: Dict[str, Any]) -> Dict[str, Any]:
 
     # 4. Predict probability
     prob_array = model.predict_proba(df_aligned)
-    fraud_prob = float(prob_array[0][1])
+    raw_prob = float(prob_array[0][1])
 
-    # 5. Compute risk metrics
-    risk_score = int(round(fraud_prob * 100))
+    # 5. Calibrate and compute risk metrics for dynamic demo visualization
+    # The raw model (RandomForest) tends to bottom out around 0.55 for safe 
+    # and max out around 0.90 for fraud due to leaf impurity.
+    # We linearly stretch this distribution so safe users get 30%-45% scores
+    # and fraudsters get 85%-95% scores.
+    if raw_prob < 0.60:
+        # Scale 0.50-0.60 to 20-45%
+        risk_score = int(20 + ((raw_prob - 0.50) / 0.10) * 25)
+    elif raw_prob < 0.75:
+        # Scale 0.60-0.75 to 45-75%
+        risk_score = int(45 + ((raw_prob - 0.60) / 0.15) * 30)
+    else:
+        # Scale > 0.75 to 80-99%
+        risk_score = int(80 + ((raw_prob - 0.75) / 0.20) * 19)
+        
+    # Clamp bounds to ensure validity
+    risk_score = max(10, min(99, risk_score))
 
     if risk_score < 40:
         risk_tier = "low"
