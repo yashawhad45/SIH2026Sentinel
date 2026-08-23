@@ -11,7 +11,7 @@ object UpiApiClient {
     // It routes to the FastAPI server running on the same machine.
     // If you run this on a physical device for the live demo, this MUST be changed to the laptop's
     // real local IP address (e.g., 192.168.x.x) or a public ngrok URL!
-    private const val BASE_URL = "http://192.168.0.74:8000/"
+    private const val BASE_URL = "https://shy-poets-create.loca.lt/"
 
     private val okHttpClient: OkHttpClient by lazy {
         val logging = HttpLoggingInterceptor().apply {
