@@ -44,6 +44,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -70,6 +71,9 @@ fun UpiCheckScreen(
 ) {
     val coroutineScope = rememberCoroutineScope()
     val upiModule = remember { UpiForensicModule() }
+
+    var upiId by remember { mutableStateOf("") }
+    var isUpiIdFocused by remember { mutableStateOf(false) }
 
     // 5 editable fields
     var amount by remember { mutableStateOf("450") }
@@ -133,6 +137,7 @@ fun UpiCheckScreen(
     )
 
     fun loadSafeExample() {
+        upiId = ""
         amount = "450"
         receiverAccountAge = "420"
         transactionTimeOfDay = 15f
@@ -141,6 +146,7 @@ fun UpiCheckScreen(
     }
 
     fun loadRiskyExample() {
+        upiId = "random_scammer_99@ybl"
         amount = "75000"
         receiverAccountAge = "0"
         transactionTimeOfDay = 3f
@@ -212,6 +218,27 @@ fun UpiCheckScreen(
             }
 
             Column(modifier = Modifier.padding(20.dp)) {
+                // UPI ID (Optional - Demo Narrative Only)
+                OutlinedTextField(
+                    value = upiId,
+                    onValueChange = { upiId = it },
+                    label = { Text("UPI ID (optional)") },
+                    colors = textFieldColors(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .onFocusChanged { focusState -> isUpiIdFocused = focusState.isFocused }
+                )
+                if (upiId.isNotEmpty() || isUpiIdFocused) {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = "Demo note: this ID isn't checked against a live database — risk is calculated from the attributes below.",
+                        color = TextSecondary,
+                        fontSize = 12.sp,
+                        lineHeight = 16.sp
+                    )
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+
                 // AMOUNT
                 OutlinedTextField(
                     value = amount,
@@ -342,6 +369,15 @@ fun UpiCheckScreen(
                             .padding(20.dp)
                     ) {
                         Column {
+                            if (upiId.isNotBlank()) {
+                                Text(
+                                    text = "Checked: $upiId",
+                                    color = TextPrimary,
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                                Spacer(modifier = Modifier.height(12.dp))
+                            }
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
