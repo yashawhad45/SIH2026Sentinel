@@ -174,29 +174,7 @@ fun HomeScreen(onModule1Click: () -> Unit, onModule3Click: () -> Unit) {
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(BgSurface, RoundedCornerShape(12.dp))
-                    .border(1.dp, DividerColor, RoundedCornerShape(12.dp))
-                    .padding(16.dp)
-            ) {
-                Column {
-                    Text(
-                        text = "🔒  Fully Offline",
-                        color = CyanAccent,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "All analysis runs entirely on-device. No images, IDs, or results are ever transmitted to external servers.",
-                        color = TextSecondary,
-                        fontSize = 12.sp,
-                        lineHeight = 18.sp
-                    )
-                }
-            }
+
         }
     }
 }

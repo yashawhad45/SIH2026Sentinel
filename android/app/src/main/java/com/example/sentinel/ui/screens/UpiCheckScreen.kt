@@ -453,22 +453,7 @@ fun UpiCheckScreen(
                     }
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // QUICK FILL BUTTONS
-                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-                        OutlinedActionButton(
-                            label = "Load Safe Example",
-                            icon = Icons.Filled.ArrowBack,
-                            modifier = Modifier.weight(1f),
-                            onClick = { loadSafeExample() }
-                        )
-                        OutlinedActionButton(
-                            label = "Load Risky Example",
-                            icon = Icons.Filled.ArrowBack,
-                            modifier = Modifier.weight(1f),
-                            onClick = { loadRiskyExample() }
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(24.dp))
+
 
                     // SUBMIT BUTTON (manual mode)
                     PrimaryGradientButton(
