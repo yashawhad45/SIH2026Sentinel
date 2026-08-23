@@ -39,9 +39,18 @@ fun SentinelNavGraph(
                 onModule1Click = {
                     navController.navigate(SentinelRoutes.DOCUMENT_CAPTURE)
                 },
+                onModule2Click = {
+                    navController.navigate(SentinelRoutes.AUDIO_DETECTION)
+                },
                 onModule3Click = {
                     navController.navigate(SentinelRoutes.UPI_CHECK)
                 }
+            )
+        }
+
+        composable(SentinelRoutes.AUDIO_DETECTION) {
+            com.example.sentinel.ui.screens.AudioDetectionScreen(
+                onBack = { navController.popBackStack() }
             )
         }
 

@@ -57,7 +57,7 @@ import com.example.sentinel.ui.theme.TextPrimary
 import com.example.sentinel.ui.theme.TextSecondary
 
 @Composable
-fun HomeScreen(onModule1Click: () -> Unit, onModule3Click: () -> Unit) {
+fun HomeScreen(onModule1Click: () -> Unit, onModule2Click: () -> Unit, onModule3Click: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -148,13 +148,13 @@ fun HomeScreen(onModule1Click: () -> Unit, onModule3Click: () -> Unit) {
                 icon = Icons.Filled.MicNone,
                 title = "Voice Deepfake Detector",
                 description = "Detect AI-generated or cloned voice recordings using on-device audio forensic analysis.",
-                statusLabel = "COMING SOON",
-                statusColor = TextHint,
-                statusBgColor = ModuleLocked,
-                iconBgBrush = Brush.linearGradient(listOf(ModuleLocked, ModuleLocked)),
-                borderColor = StrokeColor,
-                isEnabled = false,
-                onClick = {}
+                statusLabel = "ACTIVE",
+                statusColor = RiskClear,
+                statusBgColor = Color(0xFF0D2B1A),
+                iconBgBrush = Brush.linearGradient(listOf(Color(0xFF00D4FF), Color(0xFF0099CC))),
+                borderColor = CyanAccent,
+                isEnabled = true,
+                onClick = onModule2Click
             )
 
             Spacer(modifier = Modifier.height(14.dp))
