@@ -1,18 +1,18 @@
 {
     "Random Forest": {
-        "Accuracy_mean": 1.0,
-        "Accuracy_std": 0.0,
-        "F1_mean": 1.0,
-        "F1_std": 0.0,
-        "ROC_AUC_mean": 1.0,
-        "ROC_AUC_std": 0.0
+        "Accuracy_mean": 0.9774939720187972,
+        "Accuracy_std": 0.0022178440862963616,
+        "F1_mean": 0.9337219674283629,
+        "F1_std": 0.006459298899317783,
+        "ROC_AUC_mean": 0.996303800278412,
+        "ROC_AUC_std": 0.0005353148811175368
     },
     "XGBoost": {
-        "Accuracy_mean": 1.0,
-        "Accuracy_std": 0.0,
-        "F1_mean": 1.0,
-        "F1_std": 0.0,
-        "ROC_AUC_mean": 1.0,
-        "ROC_AUC_std": 0.0
+        "Accuracy_mean": 0.9788580246138169,
+        "Accuracy_std": 0.0015232227745050776,
+        "F1_mean": 0.9365802521543444,
+        "F1_std": 0.0048753173858397565,
+        "ROC_AUC_mean": 0.9961478000723701,
+        "ROC_AUC_std": 0.0003882243828596949
     }
 }

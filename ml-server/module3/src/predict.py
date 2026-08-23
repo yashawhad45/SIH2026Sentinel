@@ -23,6 +23,7 @@ PROCESSED_DIR = os.path.join(DATA_DIR, "processed")
 
 MODEL_PATH = os.path.join(MODELS_DIR, "upi_model.pkl")
 FEATURE_COLUMNS_PATH = os.path.join(PROCESSED_DIR, "feature_columns.pkl")
+LEAKY_COLUMNS_PATH = os.path.join(DATA_DIR, "leaky_columns.json")
 
 # Columns to drop — same uninformative/zero-variance set as in data_prep.py
 COLUMNS_TO_DROP = [
@@ -41,6 +42,7 @@ COLUMNS_TO_DROP = [
     "handle_contains_official_terms",
     "social_media_presence",
     "is_fraud",
+    "business_name_match",
 ]
 
 # Lazy-loaded globals for fast warm inference
@@ -157,16 +159,18 @@ def check_transaction(transaction: Dict[str, Any]) -> Dict[str, Any]:
     # 1. Preprocess raw transaction input
     raw_df = pd.DataFrame([transaction])
 
-    # Drop non-generalizable columns present in the input
-    cols_to_drop_present = [col for col in COLUMNS_TO_DROP if col in raw_df.columns]
+    # Load leaky columns dynamically
+    if os.path.exists(LEAKY_COLUMNS_PATH):
+        with open(LEAKY_COLUMNS_PATH, "r") as f:
+            leaky_cols = json.load(f)
+        drop_list = list(set(COLUMNS_TO_DROP + leaky_cols))
+    else:
+        drop_list = COLUMNS_TO_DROP
+
+    # Drop non-generalizable and leaky columns present in the input
+    cols_to_drop_present = [col for col in drop_list if col in raw_df.columns]
     df_clean = raw_df.drop(columns=cols_to_drop_present)
 
-    # Fix 'business_name_match' leakage to match data_prep.py
-    if "business_name_match" in df_clean.columns:
-        df_clean["has_business_name_match"] = ((df_clean["business_name_match"] != "none") & 
-                                               df_clean["business_name_match"].notna() & 
-                                               (df_clean["business_name_match"] != "")).astype(int)
-        df_clean = df_clean.drop(columns=["business_name_match"])
 
     # 2. One-hot encode remaining categorical columns
     # In single-row inference, dummy indicators match presence of categories
