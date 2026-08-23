@@ -2,15 +2,16 @@
 src/data_prep.py
 Data Preparation Pipeline for UPI Fraud Detection:
 1. Loads raw dataset from data/fraud_dataset.csv
-2. Drops non-generalizable/high-cardinality/zero-variance columns
+2. Drops non-generalizable/high-cardinality/zero-variance columns AND leaky columns from audit
 3. One-hot encodes remaining categorical columns & sanitizes column names
 4. Performs stratified 80/20 train-test split (random_state=42)
 5. Saves processed splits (X_train, X_test, y_train, y_test) & feature_columns to data/processed/*.pkl
-6. Prints final shapes and class distributions (% fraud)
+6. Validates that no remaining feature perfectly separates the classes
 """
 
 import os
 import re
+import json
 import joblib
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -59,10 +60,19 @@ def prepare_data(
     df = pd.read_csv(raw_path)
     print(f"Loaded raw dataset shape: {df.shape}")
 
-    # 2. Drop non-generalizable columns
-    cols_to_drop_present = [col for col in COLUMNS_TO_DROP if col in df.columns]
+    # 1.5 Load leaky columns
+    leaky_json_path = os.path.join(DATA_DIR, "leaky_columns.json")
+    if os.path.exists(leaky_json_path):
+        with open(leaky_json_path, "r") as f:
+            leaky_columns = json.load(f)
+        drop_list = list(set(COLUMNS_TO_DROP + leaky_columns))
+    else:
+        drop_list = COLUMNS_TO_DROP
+
+    # 2. Drop non-generalizable and leaky columns
+    cols_to_drop_present = [col for col in drop_list if col in df.columns]
     df = df.drop(columns=cols_to_drop_present)
-    print(f"Dropped {len(cols_to_drop_present)} uninformative columns. Remaining columns: {df.shape[1]}")
+    print(f"Dropped {len(cols_to_drop_present)} uninformative/leaky columns. Remaining columns: {df.shape[1]}")
 
     if TARGET_COLUMN not in df.columns:
         raise ValueError(f"Target column '{TARGET_COLUMN}' not found in dataset.")
@@ -71,7 +81,7 @@ def prepare_data(
     y = df[TARGET_COLUMN]
     X = df.drop(columns=[TARGET_COLUMN])
 
-    # Fix 'business_name_match' leakage
+    # Fix 'business_name_match' leakage (if it wasn't already dropped)
     if "business_name_match" in X.columns:
         X["has_business_name_match"] = ((X["business_name_match"] != "none") & 
                                         X["business_name_match"].notna() & 
@@ -86,6 +96,27 @@ def prepare_data(
     X_encoded.columns = [sanitize_column_name(col) for col in X_encoded.columns]
     feature_columns = list(X_encoded.columns)
     print(f"Total encoded features: {len(feature_columns)}")
+
+    # 3.5 Validating final features against data leakage
+    print("\nValidating final encoded features against data leakage...")
+    for col in X_encoded.columns:
+        gen_data = X_encoded[y == 0][col].dropna()
+        fraud_data = X_encoded[y == 1][col].dropna()
+        if len(gen_data) == 0 or len(fraud_data) == 0:
+            continue
+        gen_min, gen_max = gen_data.min(), gen_data.max()
+        fraud_min, fraud_max = fraud_data.min(), fraud_data.max()
+        gen_std = gen_data.std()
+        fraud_std = fraud_data.std()
+        
+        if fraud_max < gen_min or fraud_min > gen_max:
+            raise ValueError(f"LEAKAGE DETECTED! '{col}' has zero overlap between classes.")
+        elif gen_std == 0:
+            raise ValueError(f"LEAKAGE DETECTED! '{col}' -> Genuine class has std=0 (All values={gen_min}).")
+        elif fraud_std == 0:
+            raise ValueError(f"LEAKAGE DETECTED! '{col}' -> Fraud class has std=0 (All values={fraud_min}).")
+            
+    print("Validation PASSED! No perfect predictors remaining.")
 
     # 4. Stratified 80/20 train/test split
     print(f"Splitting dataset (train={1-test_size:.0%}, test={test_size:.0%}, stratify={TARGET_COLUMN}, random_state={random_state})...")
