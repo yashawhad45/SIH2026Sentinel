@@ -39,6 +39,7 @@ COLUMNS_TO_DROP = [
     "upi_handle_age",
     "handle_contains_official_terms",
     "social_media_presence",
+    "business_name_match",
 ]
 
 TARGET_COLUMN = "is_fraud"
@@ -80,13 +81,6 @@ def prepare_data(
     # Separate features and target
     y = df[TARGET_COLUMN]
     X = df.drop(columns=[TARGET_COLUMN])
-
-    # Fix 'business_name_match' leakage (if it wasn't already dropped)
-    if "business_name_match" in X.columns:
-        X["has_business_name_match"] = ((X["business_name_match"] != "none") & 
-                                        X["business_name_match"].notna() & 
-                                        (X["business_name_match"] != "")).astype(int)
-        X = X.drop(columns=["business_name_match"])
 
     # 3. One-hot encode remaining categorical columns
     print("One-hot encoding categorical/text features...")
