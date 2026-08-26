@@ -20,10 +20,11 @@ class UpiForensicModule : ForensicModule {
                 UpiApiClient.api.checkTransaction(input.fields)
             }
 
-            val riskLevel = when {
-                response.risk_score < 50 -> RiskLevel.CLEAR
-                response.risk_score < 70 -> RiskLevel.SUSPICIOUS
-                else -> RiskLevel.FORGED
+            val riskLevel = when (response.risk_tier) {
+                "not_fraud" -> RiskLevel.CLEAR
+                "suspicious" -> RiskLevel.SUSPICIOUS
+                "fraud" -> RiskLevel.FORGED
+                else -> RiskLevel.SUSPICIOUS
             }
             
             val details = buildList {
@@ -39,7 +40,8 @@ class UpiForensicModule : ForensicModule {
                 passed = riskLevel == RiskLevel.CLEAR,
                 riskLevel = riskLevel,
                 score = response.risk_score.toFloat() / 100f,
-                details = details
+                details = details,
+                rawRiskTier = response.risk_tier
             )
         } catch (e: Exception) {
             LayerResult(

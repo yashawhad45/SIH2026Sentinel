@@ -23,7 +23,6 @@ PROCESSED_DIR = os.path.join(DATA_DIR, "processed")
 
 MODEL_PATH = os.path.join(MODELS_DIR, "upi_model.pkl")
 FEATURE_COLUMNS_PATH = os.path.join(PROCESSED_DIR, "feature_columns.pkl")
-LEAKY_COLUMNS_PATH = os.path.join(DATA_DIR, "leaky_columns.json")
 
 # Columns to drop — same uninformative/zero-variance set as in data_prep.py
 COLUMNS_TO_DROP = [
@@ -42,7 +41,6 @@ COLUMNS_TO_DROP = [
     "handle_contains_official_terms",
     "social_media_presence",
     "is_fraud",
-    "business_name_match",
 ]
 
 # Lazy-loaded globals for fast warm inference
@@ -124,12 +122,12 @@ def _extract_security_flags(transaction: Dict[str, Any]) -> List[str]:
 
 def _generate_explanation(risk_tier: str, flags: List[str]) -> str:
     """Generate a single concise explanatory sentence based on tier and top flags."""
-    if risk_tier == "low":
+    if risk_tier == "not_fraud":
         if not flags:
             return "Transaction verified as low risk with standard user patterns and legitimate payee credentials."
         return f"Transaction is low risk, though noted: {flags[0].lower()}."
 
-    if risk_tier == "caution":
+    if risk_tier == "suspicious":
         if flags:
             top_flags = "; ".join(flags[:2])
             return f"Caution advised: moderate risk detected due to {top_flags.lower()}."
@@ -159,18 +157,16 @@ def check_transaction(transaction: Dict[str, Any]) -> Dict[str, Any]:
     # 1. Preprocess raw transaction input
     raw_df = pd.DataFrame([transaction])
 
-    # Load leaky columns dynamically
-    if os.path.exists(LEAKY_COLUMNS_PATH):
-        with open(LEAKY_COLUMNS_PATH, "r") as f:
-            leaky_cols = json.load(f)
-        drop_list = list(set(COLUMNS_TO_DROP + leaky_cols))
-    else:
-        drop_list = COLUMNS_TO_DROP
-
-    # Drop non-generalizable and leaky columns present in the input
-    cols_to_drop_present = [col for col in drop_list if col in raw_df.columns]
+    # Drop non-generalizable columns present in the input
+    cols_to_drop_present = [col for col in COLUMNS_TO_DROP if col in raw_df.columns]
     df_clean = raw_df.drop(columns=cols_to_drop_present)
 
+    # Fix 'business_name_match' leakage to match data_prep.py
+    if "business_name_match" in df_clean.columns:
+        df_clean["has_business_name_match"] = ((df_clean["business_name_match"] != "none") & 
+                                               df_clean["business_name_match"].notna() & 
+                                               (df_clean["business_name_match"] != "")).astype(int)
+        df_clean = df_clean.drop(columns=["business_name_match"])
 
     # 2. One-hot encode remaining categorical columns
     # In single-row inference, dummy indicators match presence of categories
@@ -202,12 +198,12 @@ def check_transaction(transaction: Dict[str, Any]) -> Dict[str, Any]:
     # Clamp bounds to ensure validity
     risk_score = max(10, min(99, risk_score))
 
-    if risk_score < 40:
-        risk_tier = "low"
-    elif risk_score <= 70:
-        risk_tier = "caution"
+    if risk_score < 20:
+        risk_tier = "not_fraud"
+    elif risk_score <= 50:
+        risk_tier = "suspicious"
     else:
-        risk_tier = "high"
+        risk_tier = "fraud"
 
     # 6. Extract rule-based security flags and explanation
     flags = _extract_security_flags(transaction)
@@ -288,13 +284,13 @@ if __name__ == "__main__":
         "transaction_id": "txn-caution-002",
         "user_id": "user_priya_21",
         "merchant_id": "merch_unknown_88",
-        "amount": 3200.0,
+        "amount": 300.0,
         "session_duration": 60,
         "authentication_attempts": 1,
         "receiver_account_age": 45,
         "receiver_transaction_history": 5,
-        "transaction_amount_vs_sender_history": 2.1,
-        "geographic_disparity": 150.0,
+        "transaction_amount_vs_sender_history": 1.5,
+        "geographic_disparity": 20.0,
         "transaction_time_of_day": 23,          # 11:00 PM
         "merchant_category_code": "unknown",
         "session_source": "app",
@@ -320,7 +316,7 @@ if __name__ == "__main__":
         "unusual_transaction_amount_flag": 0,
         "otp_request_frequency": 0,
         "otp_request_device_consistency": 1,
-        "transaction_velocity": 2,
+        "transaction_velocity": 1,
         "failed_transaction_count": 0,
         "authorization_method": "pin",
         "transaction_type": "payment",
@@ -337,7 +333,7 @@ if __name__ == "__main__":
         "business_name_match": "none",
         "handle_registration_pattern": "none",
         "handle_to_description_consistency": 0,
-        "handle_verification_status": "unverified",
+        "handle_verification_status": "verified",
     }
 
     # ── Example 3: Clearly High Risk ─────────────────────────────────────────

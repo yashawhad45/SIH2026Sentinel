@@ -521,15 +521,34 @@ fun UpiCheckScreen(
                                     color = TextSecondary,
                                     fontSize = 14.sp
                                 )
+                                val badgeBgColor = when (r.rawRiskTier) {
+                                    "not_fraud" -> Color(0xFF4CAF50).copy(alpha = 0.2f)
+                                    "suspicious" -> Color(0xFF4D3800)
+                                    "fraud" -> Color(0xFFF44336).copy(alpha = 0.2f)
+                                    else -> r.riskLevel.backgroundColor
+                                }
+                                val badgeTextColor = when (r.rawRiskTier) {
+                                    "not_fraud" -> Color(0xFF4CAF50)
+                                    "suspicious" -> Color(0xFFFFC107)
+                                    "fraud" -> Color(0xFFF44336)
+                                    else -> r.riskLevel.color
+                                }
+                                val badgeLabel = when (r.rawRiskTier) {
+                                    "not_fraud" -> "NOT FRAUD"
+                                    "suspicious" -> "SUSPICIOUS"
+                                    "fraud" -> "FRAUD"
+                                    else -> r.riskLevel.displayLabel
+                                }
+
                                 Box(
                                     modifier = Modifier
-                                        .background(r.riskLevel.backgroundColor, RoundedCornerShape(100.dp))
-                                        .border(1.dp, r.riskLevel.color.copy(alpha = 0.5f), RoundedCornerShape(100.dp))
+                                        .background(badgeBgColor, RoundedCornerShape(100.dp))
+                                        .border(1.dp, badgeTextColor.copy(alpha = 0.5f), RoundedCornerShape(100.dp))
                                         .padding(horizontal = 12.dp, vertical = 4.dp)
                                 ) {
                                     Text(
-                                        text = r.riskLevel.displayLabel,
-                                        color = r.riskLevel.color,
+                                        text = badgeLabel,
+                                        color = badgeTextColor,
                                         fontSize = 12.sp,
                                         fontWeight = FontWeight.Bold
                                     )
