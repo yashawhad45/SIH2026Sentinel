@@ -28,7 +28,7 @@ interface CnnApi {
 object CnnApiClient {
     // 10.0.2.2 is the special IP to access the host machine's localhost from the Android Emulator
     // If testing on a real device, change this to your laptop's local IP (e.g., "http://192.168.1.x:8000/")
-    private const val BASE_URL = "http://192.168.0.88:8000/"
+    private const val BASE_URL = "http://192.168.0.213:8000/"
 
     val api: CnnApi by lazy {
         Retrofit.Builder()

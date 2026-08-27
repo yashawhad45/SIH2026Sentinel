@@ -1,38 +1,44 @@
-from fastapi import FastAPI, UploadFile, File
-from model import ForgeryDetectionModel
-from srm_analyzer import SrmAnalyzer
+from fastapi import FastAPI, UploadFile, File, Form
+from forensic_analyzer import ForensicAnalyzer
+from document_warper import DocumentWarper
 import os
+import json
+import cv2
+import numpy as np
 
 app = FastAPI(title="Sentinel ML Server", version="2.0")
 
-# Initialize models
-model_path = os.path.join(os.path.dirname(__file__), "casia_resnet50.pth")
-detector = ForgeryDetectionModel()
-srm = SrmAnalyzer()
+forensic_analyzer = ForensicAnalyzer()
+warper = DocumentWarper()
 
-@app.post("/detect-forgery")
-async def detect_forgery(file: UploadFile = File(...)):
+@app.post("/forensic-analysis")
+async def forensic_analysis(file: UploadFile = File(...), ocr_blocks: str = Form(...)):
     contents = await file.read()
+    blocks = json.loads(ocr_blocks)
     
-    # Run CNN detection
-    cnn_result = detector.predict(contents)
+    # 1. Decode raw image
+    nparr = np.frombuffer(contents, np.uint8)
+    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
     
-    # Run SRM noise analysis
-    srm_result = srm.analyze(contents)
+    if img is None:
+        return {"success": False, "error": "Could not decode image"}
+        
+    # 2. Warp document and transform MLKit bounding boxes
+    warped, transformed_blocks, card_detected = warper.warp_document_and_boxes(img, blocks)
+    print(f'Received {len(blocks)} blocks from Android, kept {len(transformed_blocks)} after warp')
     
-    doctamper_prob = cnn_result.get("forgery_probability", 0.0)
-    srm_score = srm_result.get("noise_inconsistency", 0.0)
+    # 3. Encode warped image back to bytes for the analyzer
+    _, buffer = cv2.imencode('.jpg', warped)
+    warped_bytes = buffer.tobytes()
     
-    return {
-        "filename": file.filename,
-        "forgery_probability": round(doctamper_prob, 4),
-        "doctamper_pixel_ratio": cnn_result.get("tampered_pixel_ratio", 0.0),
-        "is_forged": doctamper_prob > 0.5,
-        "srm_score": round(srm_score, 4),
-        "srm_details": srm_result.get("details", "")
-    }
+    # 4. Run Forensic Analysis using perfect flat image and perfectly aligned boxes
+    result = forensic_analyzer.analyze(warped_bytes, transformed_blocks)
+    result["card_detected"] = card_detected
+    return result
 
 @app.get("/health")
 async def health():
-    return {"status": "ok", "version": "2.0", "layers": ["CNN-CASIA", "SRM-Noise"]}
+    return {"status": "ok", "version": "2.0", "layers": ["Forensic-Consistency-Robust"]}
+
+
 
