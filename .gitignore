@@ -1,1 +1,16 @@
 *.pth
+*.zip
+*.webm
+*.tmp
+*.log
+.gradle/
+.idea/
+.kotlin/
+local.properties
+build/
+app/build/
+android/app/build/
+android/.gradle/
+backend/final_model/
+backend/__pycache__/
+backend/*.zip
